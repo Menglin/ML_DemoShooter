@@ -6,6 +6,7 @@ import org.andengine.engine.camera.hud.controls.BaseOnScreenControl;
 import org.andengine.engine.camera.hud.controls.AnalogOnScreenControl.IAnalogOnScreenControlListener;
 //import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.TextureManager;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -17,10 +18,11 @@ import android.content.Context;
 import android.opengl.GLES20;
 
 public class Hero extends Character{
-	public Hero()
-	{
-		this.m_health = 100;
-		this.m_speed = 10;
+	public Hero(float pX, float pY, ITextureRegion pTextureRegion,
+			VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
+		// TODO Auto-generated constructor stub
+		m_Sprite = this;
 		
 		m_lastFireTime = System.currentTimeMillis();
 		m_curFireTime = 0;
@@ -29,10 +31,8 @@ public class Hero extends Character{
 		m_bullets = new Bullets();
 	}
 	
-	public void fn_loadRes(TextureManager tm, Context c, String res)
+	public void fn_loadRes(TextureManager tm, Context c)
 	{
-		super.fn_loadRes(tm, c, res);
-		
 		m_bullets.fn_loadRes(tm, c, "bullet.png");
 		
 		this.m_OnScreenControlTexture = new BitmapTextureAtlas(tm, 256, 128, TextureOptions.BILINEAR);
@@ -81,6 +81,7 @@ public class Hero extends Character{
 			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
 				if(pValueX == 0 && pValueY == 0) {
 				} else {
+					m_body.setAngularVelocity(0);
 					m_body.setTransform(m_body.getPosition(), (float)Math.atan2(pValueX, -pValueY));
 					m_curFireTime = System.currentTimeMillis();
 					if (m_curFireTime-m_lastFireTime >= m_fireRate)
@@ -103,6 +104,7 @@ public class Hero extends Character{
 		m_velocityOnScreenControl.setChildScene(m_rotationOnScreenControl);
 	}
 
+	private Sprite m_Sprite;
 	
 	private Bullets m_bullets;
 	private Scene m_scene;

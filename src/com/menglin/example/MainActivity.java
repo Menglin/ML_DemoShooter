@@ -88,29 +88,33 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 	private MenuScene m_SubMenuScene;
 	
 	// for splash texture
-	private BitmapTextureAtlas m_SplashTextureAtlas;
-	private ITextureRegion m_SplashTextureRegion;
-	private Sprite m_Splash;
+	private static BitmapTextureAtlas m_SplashTextureAtlas;
+	private static ITextureRegion m_SplashTextureRegion;
+	private static Sprite m_Splash;
 	
 	// for startmenu texture
-	private BitmapTextureAtlas m_StartMenuTextureAtlas;
-	private ITextureRegion m_StartMenuStartTextureRegion;
-	private ITextureRegion m_StartMenuStartTextureRegion2;
-	private ITextureRegion m_StartMenuStartTextureRegion3;
-	private ITextureRegion m_StartMenuQuitTextureRegion;
-	private ITextureRegion m_StartMenuQuitTextureRegion2;
-	private ITextureRegion m_StartMenuQuitTextureRegion3;
-	private ITextureRegion m_StartMenuPicTextureRegion;
+	private static BitmapTextureAtlas m_StartMenuTextureAtlas;
+	private static ITextureRegion m_StartMenuStartTextureRegion;
+	private static ITextureRegion m_StartMenuStartTextureRegion2;
+	private static ITextureRegion m_StartMenuStartTextureRegion3;
+	private static ITextureRegion m_StartMenuQuitTextureRegion;
+	private static ITextureRegion m_StartMenuQuitTextureRegion2;
+	private static ITextureRegion m_StartMenuQuitTextureRegion3;
+	private static ITextureRegion m_StartMenuPicTextureRegion;
 	
 	// for Game Scene
 	private Hero m_hero;
+	private static BitmapTextureAtlas m_HeroTextureAtlas;
+	private static ITextureRegion m_HeroTextureRegion;
+	
 	private BitmapTextureAtlas m_EnemyTextureAtlas;
 	private ITextureRegion m_EnemyTextureRegion;
 	
 	private Vector<Enemy> m_Enemies = new Vector<Enemy>();
 	
-	private long m_lastUpdateTime;
 	private long m_currentTime;
+	private long m_lastUpdateTime;
+	private long m_lastEnemyTime;
 	
 	// for option menu
 	private Font m_Font;
@@ -126,7 +130,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 
 		if(MultiTouch.isSupported(this)) {
 			if(MultiTouch.isSupportedDistinct(this)) {
-				Toast.makeText(this, "MultiTouch detected --> Both controls will work properly!", Toast.LENGTH_SHORT).show();
+				//Toast.makeText(this, "MultiTouch detected --> Both controls will work properly!", Toast.LENGTH_SHORT).show();
 			} else {
 				m_hero.mPlaceOnScreenControlsAtDifferentVerticalLocations = true;
 				Toast.makeText(this, "MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.", Toast.LENGTH_LONG).show();
@@ -170,10 +174,11 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		
 		// for game ////
 		
-		m_hero = new Hero();
-		m_hero.fn_loadRes(this.getTextureManager(), this, "hero.png");
+		m_HeroTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 32, TextureOptions.DEFAULT);
+		m_HeroTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_HeroTextureAtlas, this, "hero.png", 0, 0);
+		m_HeroTextureAtlas.load();
 		
-		m_EnemyTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 32, TextureOptions.BILINEAR);
+		m_EnemyTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 32, TextureOptions.DEFAULT);
 		m_EnemyTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_EnemyTextureAtlas, this, "enemy.png", 0, 0);
 		m_EnemyTextureAtlas.load();
 		// end game ////
@@ -294,14 +299,14 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		m_StartMenuScene.setBackground(new Background(0.05f, 0.5f, 0.75f));
 		
 		/* Calculate the coordinates for the face, so its centered on the camera. */
-		final float centerX = (CAMERA_WIDTH - this.m_StartMenuStartTextureRegion.getWidth()) / 2;
+		final float centerX = (CAMERA_WIDTH - m_StartMenuStartTextureRegion.getWidth()) / 2;
 		//float centerY = (CAMERA_HEIGHT - this.m_StartMenuStartTextureRegion.getHeight()) / 2;
-		final float buttomY = CAMERA_HEIGHT - this.m_StartMenuStartTextureRegion.getHeight();
+		final float buttomY = CAMERA_HEIGHT - m_StartMenuStartTextureRegion.getHeight();
 		
-		final Sprite menupic = new Sprite(0, 0, this.m_StartMenuPicTextureRegion, this.getVertexBufferObjectManager());
+		final Sprite menupic = new Sprite(0, 0, m_StartMenuPicTextureRegion, this.getVertexBufferObjectManager());
 		m_StartMenuScene.attachChild(menupic);
 		/* Create the face and add it to the scene. */
-		final Sprite btn_start = new ButtonSprite(centerX - 220, buttomY, this.m_StartMenuStartTextureRegion, this.m_StartMenuStartTextureRegion2, this.m_StartMenuStartTextureRegion3, this.getVertexBufferObjectManager(),
+		final Sprite btn_start = new ButtonSprite(centerX - 220, buttomY, m_StartMenuStartTextureRegion, m_StartMenuStartTextureRegion2, m_StartMenuStartTextureRegion3, this.getVertexBufferObjectManager(),
 				new OnClickListener() {
 					@Override
 					public void onClick(ButtonSprite pButtonSprite, float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -315,7 +320,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 				});
 		m_StartMenuScene.registerTouchArea(btn_start);
 		m_StartMenuScene.attachChild(btn_start);
-		final Sprite btn_quit = new ButtonSprite(centerX + 20, buttomY, this.m_StartMenuQuitTextureRegion, this.m_StartMenuQuitTextureRegion2, this.m_StartMenuQuitTextureRegion3, this.getVertexBufferObjectManager(),
+		final Sprite btn_quit = new ButtonSprite(centerX + 20, buttomY, m_StartMenuQuitTextureRegion, m_StartMenuQuitTextureRegion2, m_StartMenuQuitTextureRegion3, this.getVertexBufferObjectManager(),
 				new OnClickListener() {
 					@Override
 					public void onClick(ButtonSprite pButtonSprite, float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -332,23 +337,29 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		// Game Scene ////
 		m_GameScene = new Scene();
 		m_GameScene.setBackground(new Background(0.05f, 0.5f, 0.75f));
+		
 		initPhysics();
-		float centerX = (CAMERA_WIDTH - Hero.m_TextureRegion.getWidth()) / 2;
-		float centerY = (CAMERA_HEIGHT - Hero.m_TextureRegion.getHeight()) / 2;
-		m_hero.fn_initSprite(centerX, centerY, m_GameScene, this.getVertexBufferObjectManager());
-		m_hero.fn_initPhysicsBody(m_physicsWorld);
+		
+		float centerX = (CAMERA_WIDTH - m_HeroTextureRegion.getWidth()) / 2;
+		float centerY = (CAMERA_HEIGHT - m_HeroTextureRegion.getHeight()) / 2;
+		
+		m_hero = new Hero(centerX, centerY, m_HeroTextureRegion, this.getVertexBufferObjectManager());
+		m_GameScene.attachChild(m_hero);
+		m_hero.fn_loadRes(this.getTextureManager(), this);
+		m_hero.fn_initPhysicsBody(m_physicsWorld, "Hero");
 		m_hero.fn_initControl(CAMERA_WIDTH, CAMERA_HEIGHT, m_GameScene, this.getVertexBufferObjectManager(), this.m_Camera);
 
 		for (int i = 0; i < 10; i++)
 		{
-			Enemy enemy = new Enemy();
-			enemy.fn_initSprite(i * 50, i * 50, m_EnemyTextureRegion, m_GameScene, this.getVertexBufferObjectManager());
-			enemy.fn_initPhysicsBody(m_physicsWorld);
+			Enemy enemy = new Enemy(i*50, i*50, m_EnemyTextureRegion, this.getVertexBufferObjectManager());
+			m_GameScene.attachChild(enemy);
+			enemy.fn_initPhysicsBody(m_physicsWorld, "Enemy");
 			//enemy.fn_initThread();
 			m_Enemies.add(enemy);
 		}
 
 		m_lastUpdateTime = 0;
+		m_lastEnemyTime = 0;
 		//m_currentTime = m_lastUpdateTime;
 		
 		// Game main Loop
@@ -361,7 +372,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 			public void onUpdate(final float pSecondsElapsed) {
 
 				m_currentTime = System.currentTimeMillis();
-				if (m_currentTime - m_lastUpdateTime >= 1000)
+				if (m_currentTime - m_lastUpdateTime >= 100)
 				{
 					Iterator<Enemy> it = m_Enemies.iterator();
 					
@@ -372,6 +383,19 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 					}
 					// end while
 					m_lastUpdateTime = m_currentTime;
+				}
+				
+				if (m_currentTime - m_lastEnemyTime >= 2500 && m_Enemies.size() < 20)
+				{
+					for (int i = 0; i < 5; i++)
+					{
+						Enemy enemy = new Enemy((float)Math.random()*(CAMERA_WIDTH - 100) + 50, (float)Math.random()*(CAMERA_HEIGHT - 100) + 50, m_EnemyTextureRegion, MainActivity.this.getVertexBufferObjectManager());
+						m_GameScene.attachChild(enemy);
+						enemy.fn_initPhysicsBody(m_physicsWorld, "Enemy");
+						//enemy.fn_initThread();
+						m_Enemies.add(enemy);
+					}
+					m_lastEnemyTime = m_currentTime;
 				}
 				// end if
 			}
@@ -429,12 +453,20 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		Body wallbody; 
 		wallbody = PhysicsFactory.createBoxBody(m_physicsWorld, ground, BodyType.StaticBody, wallFixtureDef);
 		wallbody.setUserData(new UserData(ground,"Wall"));
+		wallbody.setActive(true);
+		m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(ground, wallbody, true, true));
 		wallbody = PhysicsFactory.createBoxBody(m_physicsWorld, roof, BodyType.StaticBody, wallFixtureDef);
 		wallbody.setUserData(new UserData(roof,"Wall"));
+		wallbody.setActive(true);
+		m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(roof, wallbody, true, true));
 		wallbody = PhysicsFactory.createBoxBody(m_physicsWorld, left, BodyType.StaticBody, wallFixtureDef);
 		wallbody.setUserData(new UserData(left,"Wall"));
+		wallbody.setActive(true);
+		m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(left, wallbody, true, true));
 		wallbody = PhysicsFactory.createBoxBody(m_physicsWorld, right, BodyType.StaticBody, wallFixtureDef);
 		wallbody.setUserData(new UserData(right,"Wall"));
+		wallbody.setActive(true);
+		m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(right, wallbody, true, true));
 
 		m_GameScene.attachChild(ground);
 		m_GameScene.attachChild(roof);
@@ -462,173 +494,57 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 					@Override
 					public void run() {
 						// TODO Auto-generated method stub
-						
 						final PhysicsConnector physicsConnector = 
 								m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata1.m_pAreaShape);
 
 						final PhysicsConnector physicsConnector2 = 
 								m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata2.m_pAreaShape);
 						
-						if (physicsConnector != null)
+						if ( (physicsConnector != null) && (physicsConnector2 != null) )
 						{
-							if (udata1.m_label.equals("Bullet") || (udata1.m_label.equals("Enemy") && udata2.m_label.equals("Bullet")))
+							if (udata1.m_label.equals("Bullet") && (udata2.m_label.equals("Wall") || udata2.m_label.equals("Enemy")) )
 							{
 								m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
 								x1.getBody().setActive(false);
 								m_physicsWorld.destroyBody(x1.getBody());
 								m_GameScene.detachChild(udata1.m_pAreaShape);
 								udata1.m_pAreaShape.dispose();
-								if (udata1.m_label.equals("Enemy"))
+								
+								if (udata2.m_label.equals("Enemy"))
 								{
-									Iterator<Enemy> it = m_Enemies.iterator();
-									while (it.hasNext())
-									{
-										Enemy tmpEnemy = it.next();
-										if (tmpEnemy.m_Sprite == udata1.m_pAreaShape)
-										{
-											m_Enemies.remove(tmpEnemy);
-											break;
-										}
-									}
-									// end while
+									m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
+									x2.getBody().setActive(false);
+									m_physicsWorld.destroyBody(x2.getBody());
+									m_GameScene.detachChild(udata2.m_pAreaShape);
+									udata2.m_pAreaShape.dispose();
+									m_Enemies.remove(udata2.m_pAreaShape);
 								}
 							}
-						}
-						
-						if (physicsConnector2 != null)
-						{
-							if (udata2.m_label.equals("Bullet") || (udata2.m_label.equals("Enemy") && udata1.m_label.equals("Bullet")))
+
+							if (udata2.m_label.equals("Bullet") && (udata1.m_label.equals("Wall") || udata1.m_label.equals("Enemy")) )
 							{
 								m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
 								x2.getBody().setActive(false);
 								m_physicsWorld.destroyBody(x2.getBody());
 								m_GameScene.detachChild(udata2.m_pAreaShape);
 								udata2.m_pAreaShape.dispose();
-								if (udata2.m_label.equals("Enemy"))
-								{
-									Iterator<Enemy> it = m_Enemies.iterator();
-									while (it.hasNext())
-									{
-										Enemy tmpEnemy = it.next();
-										if (tmpEnemy.m_Sprite == udata2.m_pAreaShape)
-										{
-											m_Enemies.remove(tmpEnemy);
-											break;
-										}
-									}
-									// end while
-								}
-								// end if
-							}
-						}
-					}
-				});
-				
-				/*
-				// Bullet and Wall ////
-				if (udata1.m_label.equals("Bullet")&&udata2.m_label.equals("Wall")
-						|| udata2.m_label.equals("Bullet")&&udata1.m_label.equals("Wall"))
-				{
-					final PhysicsConnector physicsConnector = 
-							m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata1.m_pAreaShape);
-					final PhysicsConnector physicsConnector2 = 
-							m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata2.m_pAreaShape);
-					mEngine.runOnUpdateThread(new Runnable()
-					{
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							if (physicsConnector != null)
-							{
-								if (udata1.m_label.equals("Bullet"))
+								
+								if (udata1.m_label.equals("Enemy"))
 								{
 									m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
-									if (x1 != null)
-									{
-										x1.getBody().setActive(false);
-										m_physicsWorld.destroyBody(x1.getBody());
-									}
-									if (udata1 != null)
-									{
-										m_GameScene.detachChild(udata1.m_pAreaShape);
-										udata1.m_pAreaShape.dispose();
-										//if (udata1.m_label.equals("Enemy"))
-											//m_Enemies.remove(udata1.m_pAreaShape);
-									}
-								}
-							}
-							if (physicsConnector2 != null)
-							{
-								if (udata2.m_label.equals("Bullet"))
-								{
-									m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
-									if (x2 != null)
-									{
-										x2.getBody().setActive(false);
-										m_physicsWorld.destroyBody(x2.getBody());
-									}
-									if (udata2 != null)
-									{
-										m_GameScene.detachChild(udata2.m_pAreaShape);
-										udata2.m_pAreaShape.dispose();
-									}
-								}
-							}
-						}
-					});
-					// end mEngine.runOnUpdateThread
-				}
-				// Bullet and Wall ////
-				
-				// Bullet and Enemy ////
-				if (udata1.m_label.equals("Bullet")&&udata2.m_label.equals("Enemy")
-						|| udata2.m_label.equals("Bullet")&&udata1.m_label.equals("Enemy"))
-				{
-					final PhysicsConnector physicsConnector = 
-							m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata1.m_pAreaShape);
-					final PhysicsConnector physicsConnector2 = 
-							m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(udata2.m_pAreaShape);
-					mEngine.runOnUpdateThread(new Runnable()
-					{
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							if (physicsConnector != null)
-							{
-								m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
-								if (x1 != null)
-								{
 									x1.getBody().setActive(false);
 									m_physicsWorld.destroyBody(x1.getBody());
-								}
-								if (udata1 != null)
-								{
 									m_GameScene.detachChild(udata1.m_pAreaShape);
 									udata1.m_pAreaShape.dispose();
-									//if (udata1.m_label.equals("Enemy"))
-										//m_Enemies.remove(udata1.m_pAreaShape);
-								}
-							}
-							if (physicsConnector2 != null)
-							{
-								m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
-								if (x2 != null)
-								{
-									x2.getBody().setActive(false);
-									m_physicsWorld.destroyBody(x2.getBody());
-								}
-								if (udata2 != null)
-								{
-									m_GameScene.detachChild(udata2.m_pAreaShape);
-									udata2.m_pAreaShape.dispose();
+									m_Enemies.remove(udata1.m_pAreaShape);
 								}
 							}
 						}
-					});
-					// end mEngine.runOnUpdateThread
-				}
-				// Bullet and Enemy ////
-				*/
+						// end if
+					}
+					// end run
+				});
+				// end runOnUpdateThread
 			}
 
 			@Override
