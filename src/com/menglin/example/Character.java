@@ -18,18 +18,18 @@ public class Character extends Sprite{// implements Runnable{
 		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
 		// TODO Auto-generated constructor stub
 		m_health = 100;
-		m_speed = 10;
+		m_speed = 2;
 	}
 	
 	public void fn_initPhysicsBody(PhysicsWorld pw, String userdata)
 	{
-		m_PhysicsWorld = pw;
+		m_physicsWorld = pw;
 		FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(100, 0.5f, 0.5f);
-		m_body = PhysicsFactory.createCircleBody(m_PhysicsWorld, this, BodyType.DynamicBody, fixtureDef);
+		m_body = PhysicsFactory.createCircleBody(m_physicsWorld, this, BodyType.DynamicBody, fixtureDef);
 		m_body.setUserData(new UserData(this, userdata));
 		m_body.setActive(true);
 		m_body.setAngularDamping(1000);
-		m_PhysicsWorld.registerPhysicsConnector(new PhysicsConnector(this, m_body, true, true));
+		m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(this, m_body, true, true));
 	}
 	
 	/*
@@ -38,7 +38,7 @@ public class Character extends Sprite{// implements Runnable{
 		m_thread = new Thread(this, "Character");
 		m_thread.start();
 	}
-
+	
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
@@ -51,7 +51,7 @@ public class Character extends Sprite{// implements Runnable{
 	
 	protected Body m_body;
 	
-	protected PhysicsWorld m_PhysicsWorld;
+	protected PhysicsWorld m_physicsWorld;
 	
-	//protected Thread m_thread;
+	protected Thread m_thread;
 }

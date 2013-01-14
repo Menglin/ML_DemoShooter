@@ -26,14 +26,13 @@ public class Hero extends Character{
 		
 		m_lastFireTime = System.currentTimeMillis();
 		m_curFireTime = 0;
-		m_fireRate = 80;
-		
-		m_bullets = new Bullets();
+
+		m_wpR = new Weapon_Ranged();
 	}
 	
 	public void fn_loadRes(TextureManager tm, Context c)
 	{
-		m_bullets.fn_loadRes(tm, c, "bullet.png");
+		m_wpR.fn_loadRes(tm, c, "bullet.png");
 		
 		this.m_OnScreenControlTexture = new BitmapTextureAtlas(tm, 256, 128, TextureOptions.BILINEAR);
 		this.m_OnScreenControlBaseTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_OnScreenControlTexture, c, "onscreen_control_base.png", 0, 0);
@@ -84,10 +83,10 @@ public class Hero extends Character{
 					m_body.setAngularVelocity(0);
 					m_body.setTransform(m_body.getPosition(), (float)Math.atan2(pValueX, -pValueY));
 					m_curFireTime = System.currentTimeMillis();
-					if (m_curFireTime-m_lastFireTime >= m_fireRate)
+					if (m_curFireTime-m_lastFireTime >= m_wpR.m_fireRate)
 					{
-						m_bullets.fn_addBullet(m_Sprite.getX()+m_Sprite.getWidth()/4+m_Sprite.getWidth()*(float)Math.cos((float)Math.atan2(pValueY, pValueX)), 
-							m_Sprite.getY()+m_Sprite.getHeight()/4+m_Sprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_scene, m_vbom, m_PhysicsWorld);
+						m_wpR.fn_fire(m_Sprite.getX()+m_Sprite.getWidth()/4+m_Sprite.getWidth()*(float)Math.cos((float)Math.atan2(pValueY, pValueX)), 
+							m_Sprite.getY()+m_Sprite.getHeight()/4+m_Sprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_scene, m_vbom, m_physicsWorld);
 						m_lastFireTime = m_curFireTime;
 					}
 				}
@@ -105,15 +104,14 @@ public class Hero extends Character{
 	}
 
 	private Sprite m_Sprite;
-	
-	private Bullets m_bullets;
 	private Scene m_scene;
 	private VertexBufferObjectManager m_vbom;
+	
+	private Weapon_Ranged m_wpR;
 
 	// Fire rate control
 	private long m_lastFireTime;
 	private long m_curFireTime;
-	private long m_fireRate;
 	
 	//private PhysicsHandler m_physicsHandler;
 	

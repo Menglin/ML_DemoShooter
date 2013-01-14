@@ -348,19 +348,20 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		m_hero.fn_loadRes(this.getTextureManager(), this);
 		m_hero.fn_initPhysicsBody(m_physicsWorld, "Hero");
 		m_hero.fn_initControl(CAMERA_WIDTH, CAMERA_HEIGHT, m_GameScene, this.getVertexBufferObjectManager(), this.m_Camera);
-
-		for (int i = 0; i < 10; i++)
+		//m_hero.fn_initThread();
+		
+		for (int i = 0; i < 5; i++)
 		{
 			Enemy enemy = new Enemy(i*50, i*50, m_EnemyTextureRegion, this.getVertexBufferObjectManager());
 			m_GameScene.attachChild(enemy);
 			enemy.fn_initPhysicsBody(m_physicsWorld, "Enemy");
+			enemy.fn_getScene(m_GameScene);
 			//enemy.fn_initThread();
 			m_Enemies.add(enemy);
 		}
 
 		m_lastUpdateTime = 0;
 		m_lastEnemyTime = 0;
-		//m_currentTime = m_lastUpdateTime;
 		
 		// Game main Loop
 		m_GameScene.registerUpdateHandler(new IUpdateHandler() {
@@ -371,6 +372,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 			@Override
 			public void onUpdate(final float pSecondsElapsed) {
 
+				// enemy ////
 				m_currentTime = System.currentTimeMillis();
 				if (m_currentTime - m_lastUpdateTime >= 100)
 				{
@@ -378,29 +380,54 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 					
 					while (it.hasNext())
 					{
-						Enemy tmpEnemy = it.next();
-						tmpEnemy.fn_chasing(m_hero.m_body.getPosition().x, m_hero.m_body.getPosition().y);
+						final Enemy tmpEnemy = it.next();
+						tmpEnemy.fn_setDirection(m_hero.m_body.getPosition().x, m_hero.m_body.getPosition().y);
+						tmpEnemy.m_blood.setPosition(tmpEnemy.getX(), tmpEnemy.getY());
+						tmpEnemy.m_blood.setWidth(tmpEnemy.m_health / 2.5f);
 					}
 					// end while
 					m_lastUpdateTime = m_currentTime;
 				}
 				
-				if (m_currentTime - m_lastEnemyTime >= 2500 && m_Enemies.size() < 20)
+				if (m_currentTime - m_lastEnemyTime >= 5000 && m_Enemies.size() < 10)
 				{
-					for (int i = 0; i < 5; i++)
+					for (int i = 0; i < 3; i++)
 					{
 						Enemy enemy = new Enemy((float)Math.random()*(CAMERA_WIDTH - 100) + 50, (float)Math.random()*(CAMERA_HEIGHT - 100) + 50, m_EnemyTextureRegion, MainActivity.this.getVertexBufferObjectManager());
 						m_GameScene.attachChild(enemy);
 						enemy.fn_initPhysicsBody(m_physicsWorld, "Enemy");
+						enemy.fn_getScene(m_GameScene);
 						//enemy.fn_initThread();
 						m_Enemies.add(enemy);
 					}
 					m_lastEnemyTime = m_currentTime;
 				}
-				// end if
+				// end enemy ////
 			}
 			// end onupdate
 		});
+		
+		/*
+		// Delay Modifier ////
+		m_GameScene.registerEntityModifier(new DelayModifier(3, new IEntityModifierListener(){
+
+			@Override
+			public void onModifierStarted(IModifier<IEntity> pModifier,
+					IEntity pItem) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onModifierFinished(IModifier<IEntity> pModifier,
+					IEntity pItem) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		}));
+		// end Delay Modifier ////
+		*/
 	}
 	
 	private void initOptionScene()
@@ -502,7 +529,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 						
 						if ( (physicsConnector != null) && (physicsConnector2 != null) )
 						{
-							if (udata1.m_label.equals("Bullet") && (udata2.m_label.equals("Wall") || udata2.m_label.equals("Enemy")) )
+							if (udata1.m_label.equals("Bullet") && udata2.m_label.equals("Enemy") )
 							{
 								m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
 								x1.getBody().setActive(false);
@@ -512,16 +539,23 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 								
 								if (udata2.m_label.equals("Enemy"))
 								{
-									m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
-									x2.getBody().setActive(false);
-									m_physicsWorld.destroyBody(x2.getBody());
-									m_GameScene.detachChild(udata2.m_pAreaShape);
-									udata2.m_pAreaShape.dispose();
-									m_Enemies.remove(udata2.m_pAreaShape);
+									Bullet tmpBullet = (Bullet)udata1.m_pAreaShape;
+									Enemy tmpEnemy = (Enemy)udata2.m_pAreaShape;
+									tmpEnemy.m_health -= tmpBullet.m_damage;
+									if (tmpEnemy.m_health <= 0)
+									{
+										m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
+										x2.getBody().setActive(false);
+										m_physicsWorld.destroyBody(x2.getBody());
+										m_GameScene.detachChild(udata2.m_pAreaShape);
+										m_GameScene.detachChild(tmpEnemy.m_blood);
+										udata2.m_pAreaShape.dispose();
+										m_Enemies.remove(udata2.m_pAreaShape);
+									}
 								}
 							}
 
-							if (udata2.m_label.equals("Bullet") && (udata1.m_label.equals("Wall") || udata1.m_label.equals("Enemy")) )
+							if (udata2.m_label.equals("Bullet") && udata1.m_label.equals("Enemy") )
 							{
 								m_physicsWorld.unregisterPhysicsConnector(physicsConnector2);
 								x2.getBody().setActive(false);
@@ -531,14 +565,23 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 								
 								if (udata1.m_label.equals("Enemy"))
 								{
-									m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
-									x1.getBody().setActive(false);
-									m_physicsWorld.destroyBody(x1.getBody());
-									m_GameScene.detachChild(udata1.m_pAreaShape);
-									udata1.m_pAreaShape.dispose();
-									m_Enemies.remove(udata1.m_pAreaShape);
+									Bullet tmpBullet = (Bullet)udata2.m_pAreaShape;
+									Enemy tmpEnemy = (Enemy)udata1.m_pAreaShape;
+									tmpEnemy.m_health -= tmpBullet.m_damage;
+									if (tmpEnemy.m_health <= 0)
+									{
+										m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
+										x1.getBody().setActive(false);
+										m_physicsWorld.destroyBody(x1.getBody());
+										m_GameScene.detachChild(udata1.m_pAreaShape);
+										m_GameScene.detachChild(tmpEnemy.m_blood);
+										udata1.m_pAreaShape.dispose();
+										m_Enemies.remove(udata1.m_pAreaShape);
+									}
 								}
+								// end if
 							}
+							// end if
 						}
 						// end if
 					}
