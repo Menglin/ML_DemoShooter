@@ -1,11 +1,9 @@
 package com.menglin.example;
 
 import org.andengine.engine.handler.IUpdateHandler;
-import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
-import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
@@ -24,18 +22,17 @@ public class Bullet extends Sprite implements Runnable{
 		m_bornTime = System.currentTimeMillis();
 		
 		m_sprite = this;
+		m_isActived = true;
 	}
 	
-	public void fn_initPhysicsBody(PhysicsWorld pw, Scene sc, String userdata)
+	public void fn_initPhysicsBody(String userdata)
 	{
-		m_physicsWorld = pw;
-		m_scene = sc;
 		FixtureDef fixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
-		m_body = PhysicsFactory.createBoxBody(pw, this, BodyType.DynamicBody, fixtureDef);
+		m_body = PhysicsFactory.createBoxBody(MainActivity.m_physicsWorld, this, BodyType.DynamicBody, fixtureDef);
 		m_body.setBullet(true);
 		m_body.setUserData(new UserData(this, userdata));
 		m_body.setActive(true);
-		pw.registerPhysicsConnector(new PhysicsConnector(this, m_body, true, true));
+		MainActivity.m_physicsWorld.registerPhysicsConnector(new PhysicsConnector(this, m_body, true, true));
 	}
 	
 
@@ -48,10 +45,32 @@ public class Bullet extends Sprite implements Runnable{
 		return m_body;
 	}
 	
+	public void fn_disactive()
+	{
+		m_isActived = false;
+	}
+	
+	private void fn_destroy()
+	{
+		if (this != null && m_body != null)
+		{
+			final PhysicsConnector physicsConnector = 
+					MainActivity.m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(m_sprite);
+			if (physicsConnector != null)
+			{
+				MainActivity.m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
+				m_body.setActive(false);
+				MainActivity.m_physicsWorld.destroyBody(m_body);
+				MainActivity.m_GameScene.detachChild(m_sprite);
+				m_sprite.dispose();
+			}
+		}
+	}
+	
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		m_scene.registerUpdateHandler(new IUpdateHandler() {
+		MainActivity.m_GameScene.registerUpdateHandler(new IUpdateHandler() {
 			// TODO Game main Loop
 			@Override
 			public void reset() { }
@@ -63,17 +82,13 @@ public class Bullet extends Sprite implements Runnable{
 				{
 					if (this != null && m_body != null)
 					{
-						final PhysicsConnector physicsConnector = 
-								m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(m_sprite);
-						if (physicsConnector != null)
-						{
-							m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
-							m_body.setActive(false);
-							m_physicsWorld.destroyBody(m_body);
-							m_scene.detachChild(m_sprite);
-							m_sprite.dispose();
-						}
+						fn_destroy();
 					}
+				}
+				
+				if (!m_isActived)
+				{
+					fn_destroy();
 				}
 			}
 			// end onupdate
@@ -81,11 +96,10 @@ public class Bullet extends Sprite implements Runnable{
 		// end registerUpdateHandler
 	}
 	
-	PhysicsWorld m_physicsWorld;
-	Scene m_scene;
-	
 	private Sprite m_sprite;
 	private Body m_body;
+	
+	private boolean m_isActived;
 	
 	public long m_damage;
 	

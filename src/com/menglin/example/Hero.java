@@ -1,11 +1,12 @@
 package com.menglin.example;
 
-import org.andengine.engine.camera.Camera;
 import org.andengine.engine.camera.hud.controls.AnalogOnScreenControl;
 import org.andengine.engine.camera.hud.controls.BaseOnScreenControl;
 import org.andengine.engine.camera.hud.controls.AnalogOnScreenControl.IAnalogOnScreenControlListener;
+import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
 //import org.andengine.engine.handler.physics.PhysicsHandler;
-import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.TextureManager;
 import org.andengine.opengl.texture.TextureOptions;
@@ -39,14 +40,53 @@ public class Hero extends Character{
 		this.m_OnScreenControlKnobTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_OnScreenControlTexture, c, "onscreen_control_knob.png", 128, 0);
 		this.m_OnScreenControlTexture.load();
 	}
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+		MainActivity.m_GameScene.registerUpdateHandler(new IUpdateHandler() {
+			// TODO Game main Loop
+			@Override
+			public void reset() { }
+
+			@Override
+			public void onUpdate(final float pSecondsElapsed) {
+				
+				IEntity tmpEntity = new Entity();
+				tmpEntity.setPosition(m_sprite.getX(), m_sprite.getY());
+				
+				if (m_sprite.getX() <= MainActivity.CAMERA_WIDTH/2)
+				{
+					tmpEntity.setPosition(MainActivity.CAMERA_WIDTH/2, tmpEntity.getY());
+				}
+				else if (m_sprite.getX() + MainActivity.CAMERA_WIDTH/2 >= MainActivity.m_WorldSize.x)
+				{
+					tmpEntity.setPosition(MainActivity.m_WorldSize.x - MainActivity.CAMERA_WIDTH/2, tmpEntity.getY());
+				}
+				
+				if (m_sprite.getY() <= MainActivity.CAMERA_HEIGHT/2)
+				{
+					tmpEntity.setPosition(tmpEntity.getX(), MainActivity.CAMERA_HEIGHT/2);
+				}
+				else if (m_sprite.getY() + MainActivity.CAMERA_HEIGHT/2 >= MainActivity.m_WorldSize.y)
+				{
+					tmpEntity.setPosition(tmpEntity.getX(), MainActivity.m_WorldSize.y - MainActivity.CAMERA_HEIGHT/2);
+				}
+				
+				MainActivity.m_Camera.setChaseEntity(tmpEntity);
+			}
+			// end onupdate
+		});
+		// end registerUpdateHandler
+	}
 
 	  ///////////////////////
 	 // on screen control //
 	///////////////////////
-	public void fn_initControl(int camW, int camH, Scene sc, VertexBufferObjectManager vbom, Camera cam)
+	public void fn_initControl(VertexBufferObjectManager vbom)
 	{
 		// get the variables to member variables, in order to use it inside the inner class
-		m_scene = sc;
 		m_vbom = vbom;
 		
 		//m_physicsHandler = new PhysicsHandler(m_Sprite);
@@ -54,11 +94,12 @@ public class Hero extends Character{
 		
 		// Velocity control (left). //
 		final float x1 = 0;
-		final float y1 = camH - m_OnScreenControlBaseTextureRegion.getHeight();
-		m_velocityOnScreenControl = new AnalogOnScreenControl(x1, y1, cam, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
+		final float y1 = MainActivity.CAMERA_HEIGHT - m_OnScreenControlBaseTextureRegion.getHeight();
+		m_velocityOnScreenControl = new AnalogOnScreenControl(x1, y1, MainActivity.m_Camera, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
 			@Override
 			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
 				//m_physicsHandler.setVelocity(pValueX * 100, pValueY * 100);
+				
 				m_body.setLinearVelocity(pValueX * 10, pValueY * 10);
 			}
 
@@ -70,12 +111,12 @@ public class Hero extends Character{
 		m_velocityOnScreenControl.getControlBase().setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		m_velocityOnScreenControl.getControlBase().setAlpha(0.5f);
 
-		sc.setChildScene(m_velocityOnScreenControl);
+		MainActivity.m_GameScene.setChildScene(m_velocityOnScreenControl);
 
 		// Rotation control (right). //
 		final float y2 = (this.mPlaceOnScreenControlsAtDifferentVerticalLocations) ? 0 : y1;
-		final float x2 = camW - m_OnScreenControlBaseTextureRegion.getWidth();
-		m_rotationOnScreenControl = new AnalogOnScreenControl(x2, y2, cam, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
+		final float x2 = MainActivity.CAMERA_WIDTH - m_OnScreenControlBaseTextureRegion.getWidth();
+		m_rotationOnScreenControl = new AnalogOnScreenControl(x2, y2, MainActivity.m_Camera, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
 			@Override
 			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
 				if(pValueX == 0 && pValueY == 0) {
@@ -86,7 +127,7 @@ public class Hero extends Character{
 					if (m_curFireTime-m_lastFireTime >= m_wpR.m_fireRate)
 					{
 						m_wpR.fn_fire(m_Sprite.getX()+m_Sprite.getWidth()/4+m_Sprite.getWidth()*(float)Math.cos((float)Math.atan2(pValueY, pValueX)), 
-							m_Sprite.getY()+m_Sprite.getHeight()/4+m_Sprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_scene, m_vbom, m_physicsWorld);
+							m_Sprite.getY()+m_Sprite.getHeight()/4+m_Sprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_vbom);
 						m_lastFireTime = m_curFireTime;
 					}
 				}
@@ -104,7 +145,6 @@ public class Hero extends Character{
 	}
 
 	private Sprite m_Sprite;
-	private Scene m_scene;
 	private VertexBufferObjectManager m_vbom;
 	
 	private Weapon_Ranged m_wpR;
