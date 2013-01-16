@@ -21,13 +21,6 @@ import org.andengine.entity.sprite.ButtonSprite.OnClickListener;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.input.touch.controller.MultiTouch;
-import org.andengine.opengl.font.Font;
-import org.andengine.opengl.font.FontFactory;
-import org.andengine.opengl.texture.ITexture;
-import org.andengine.opengl.texture.TextureOptions;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
-import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.util.GLState;
 import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.util.color.Color;
@@ -79,40 +72,20 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 	public static MenuScene m_OptionMenuScene;
 	public static MenuScene m_SubMenuScene;
 	
-	// for splash texture
-	private static BitmapTextureAtlas m_SplashTextureAtlas;
-	private static ITextureRegion m_SplashTextureRegion;
-	private static Sprite m_Splash;
+	// Resources
+	public static ResourcesManager m_rm = new ResourcesManager();
 	
-	// for startmenu texture
-	private static BitmapTextureAtlas m_StartMenuTextureAtlas;
-	private static ITextureRegion m_StartMenuStartTextureRegion;
-	private static ITextureRegion m_StartMenuStartTextureRegion2;
-	private static ITextureRegion m_StartMenuStartTextureRegion3;
-	private static ITextureRegion m_StartMenuQuitTextureRegion;
-	private static ITextureRegion m_StartMenuQuitTextureRegion2;
-	private static ITextureRegion m_StartMenuQuitTextureRegion3;
-	private static ITextureRegion m_StartMenuPicTextureRegion;
+	// splash scene
+	public static Sprite m_Splash;
 	
 	// for Game Scene
 	public static Hero m_hero;
-	private static BitmapTextureAtlas m_HeroTextureAtlas;
-	private static ITextureRegion m_HeroTextureRegion;
-	
-	private BitmapTextureAtlas m_EnemyTextureAtlas;
-	private ITextureRegion m_EnemyTextureRegion;
-	
 	public static BG m_bg;
-	private BitmapTextureAtlas m_BGTextureAtlas;
-	private ITextureRegion m_BGTextureRegion;
 	
 	//private Vector<Enemy> m_Enemies = new Vector<Enemy>();
 	
 	private long m_currentTime;
 	private long m_lastEnemyTime;
-	
-	// for option menu
-	private Font m_Font;
 	
 	// Physics
 	public static PhysicsWorld m_physicsWorld;
@@ -146,48 +119,9 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 
 	@Override
 	public void onCreateResources(OnCreateResourcesCallback pOnCreateResourcesCallback)	throws Exception {
-		// set font
-		FontFactory.setAssetBasePath("font/");
-
-		final ITexture fontTexture = new BitmapTextureAtlas(this.getTextureManager(), 256, 256, TextureOptions.BILINEAR);
-		m_Font = FontFactory.createFromAsset(this.getFontManager(), fontTexture, this.getAssets(), "Plok.ttf", 48, true, android.graphics.Color.WHITE);
-		m_Font.load();
 		
-		// set pic folder
-		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		// For splash ////
-		m_SplashTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 800, 480, TextureOptions.DEFAULT);
-		m_SplashTextureRegion =BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_SplashTextureAtlas,this,"splash.png", 0, 0);
-		m_SplashTextureAtlas.load();
+		m_rm.fn_loadResources(this.getTextureManager(), this.getFontManager(), this);
 		pOnCreateResourcesCallback.onCreateResourcesFinished();
-		// end splash ////
-		
-		// for start menu ////
-		m_StartMenuTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 800, 580, TextureOptions.DEFAULT);
-		m_StartMenuStartTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_start.png", 0, 0);
-		m_StartMenuStartTextureRegion2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_start2.png", 170, 0);
-		m_StartMenuStartTextureRegion3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_start3.png", 340, 0);
-		m_StartMenuQuitTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_quit.png", 0, 50);
-		m_StartMenuQuitTextureRegion2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_quit2.png", 170, 50);
-		m_StartMenuQuitTextureRegion3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_quit3.png", 340, 50);
-		m_StartMenuPicTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_StartMenuTextureAtlas,this,"menu_pic.png", 0, 100);
-		m_StartMenuTextureAtlas.load();
-		// end start menu ////
-		
-		// for game ////
-		
-		m_HeroTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 32, TextureOptions.DEFAULT);
-		m_HeroTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_HeroTextureAtlas, this, "hero.png", 0, 0);
-		m_HeroTextureAtlas.load();
-		
-		m_EnemyTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 32, TextureOptions.DEFAULT);
-		m_EnemyTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_EnemyTextureAtlas, this, "enemy.png", 0, 0);
-		m_EnemyTextureAtlas.load();
-		
-		m_BGTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 2048, 2048, TextureOptions.DEFAULT);
-		m_BGTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_BGTextureAtlas, this, "map.jpg", 0, 0);
-		m_BGTextureAtlas.load();
-		// end game ////
 	}
 
 	@Override
@@ -284,7 +218,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 	private void initSplashScene()
 	{
 		m_SplashScene = new Scene();
-		m_Splash = new Sprite(0, 0, m_SplashTextureRegion, mEngine.getVertexBufferObjectManager())
+		m_Splash = new Sprite(0, 0, ResourcesManager.m_SplashTextureRegion, mEngine.getVertexBufferObjectManager())
 		{
 			@Override
 			protected void preDraw(GLState pGLState, Camera pCamera)
@@ -305,16 +239,16 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		m_StartMenuScene.setBackground(new Background(0, 0, 0));
 		
 		/* Calculate the coordinates for the face, so its centered on the camera. */
-		final float centerX = (CAMERA_WIDTH - m_StartMenuStartTextureRegion.getWidth()) / 2;
+		final float centerX = (CAMERA_WIDTH - ResourcesManager.m_StartMenuStartTextureRegion.getWidth()) / 2;
 		//float centerY = (CAMERA_HEIGHT - this.m_StartMenuStartTextureRegion.getHeight()) / 2;
-		final float buttomY = CAMERA_HEIGHT - m_StartMenuStartTextureRegion.getHeight();
+		final float buttomY = CAMERA_HEIGHT - ResourcesManager.m_StartMenuStartTextureRegion.getHeight();
 		
-		final Sprite menupic = new Sprite(0, 0, m_StartMenuPicTextureRegion, this.getVertexBufferObjectManager());
+		final Sprite menupic = new Sprite(0, 0, ResourcesManager.m_StartMenuPicTextureRegion, this.getVertexBufferObjectManager());
 		menupic.setWidth(CAMERA_WIDTH);
 		menupic.setHeight(CAMERA_HEIGHT);
 		m_StartMenuScene.attachChild(menupic);
 		/* Create the face and add it to the scene. */
-		final Sprite btn_start = new ButtonSprite(centerX - 220, buttomY, m_StartMenuStartTextureRegion, m_StartMenuStartTextureRegion2, m_StartMenuStartTextureRegion3, this.getVertexBufferObjectManager(),
+		final Sprite btn_start = new ButtonSprite(centerX - 220, buttomY, ResourcesManager.m_StartMenuStartTextureRegion, ResourcesManager.m_StartMenuStartTextureRegion2, ResourcesManager.m_StartMenuStartTextureRegion3, this.getVertexBufferObjectManager(),
 				new OnClickListener() {
 					@Override
 					public void onClick(ButtonSprite pButtonSprite, float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -328,7 +262,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 				});
 		m_StartMenuScene.registerTouchArea(btn_start);
 		m_StartMenuScene.attachChild(btn_start);
-		final Sprite btn_quit = new ButtonSprite(centerX + 20, buttomY, m_StartMenuQuitTextureRegion, m_StartMenuQuitTextureRegion2, m_StartMenuQuitTextureRegion3, this.getVertexBufferObjectManager(),
+		final Sprite btn_quit = new ButtonSprite(centerX + 20, buttomY, ResourcesManager.m_StartMenuQuitTextureRegion, ResourcesManager.m_StartMenuQuitTextureRegion2, ResourcesManager.m_StartMenuQuitTextureRegion3, this.getVertexBufferObjectManager(),
 				new OnClickListener() {
 					@Override
 					public void onClick(ButtonSprite pButtonSprite, float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -348,21 +282,20 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		
 		initPhysics();
 		
-		m_bg = new BG(0, 0, m_BGTextureRegion, this.getVertexBufferObjectManager());
+		m_bg = new BG(0, 0, ResourcesManager.m_BGTextureRegion, this.getVertexBufferObjectManager());
 		
-		float centerX = (CAMERA_WIDTH - m_HeroTextureRegion.getWidth()) / 2;
-		float centerY = (CAMERA_HEIGHT - m_HeroTextureRegion.getHeight()) / 2;
+		float centerX = (CAMERA_WIDTH - ResourcesManager.m_HeroTiledTextureRegion.getWidth()) / 2;
+		float centerY = (CAMERA_HEIGHT - ResourcesManager.m_HeroTiledTextureRegion.getHeight()) / 2;
 		
-		m_hero = new Hero(centerX, centerY, m_HeroTextureRegion, this.getVertexBufferObjectManager());
+		m_hero = new Hero(centerX, centerY, ResourcesManager.m_HeroTiledTextureRegion, this.getVertexBufferObjectManager());
 		m_GameScene.attachChild(m_hero);
-		m_hero.fn_loadRes(this.getTextureManager(), this);
 		m_hero.fn_initPhysicsBody("Hero");
 		m_hero.fn_initControl(this.getVertexBufferObjectManager());
 		m_hero.fn_startThread();
 		
 		for (int i = 0; i < 20; i++)
 		{
-			Enemy enemy = new Enemy((float)Math.random()*(m_WorldSize.x - 100) + 50, (float)Math.random()*(m_WorldSize.y - 100) + 50, m_EnemyTextureRegion, this.getVertexBufferObjectManager());
+			Enemy enemy = new Enemy((float)Math.random()*(m_WorldSize.x - 100) + 50, (float)Math.random()*(m_WorldSize.y - 100) + 50, ResourcesManager.m_EnemyTiledTextureRegion, this.getVertexBufferObjectManager());
 			m_GameScene.attachChild(enemy);
 			enemy.fn_initPhysicsBody("Enemy");
 			enemy.fn_getScene(m_GameScene);
@@ -388,7 +321,7 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 				{
 					for (int i = 0; i < 10; i++)
 					{
-						Enemy enemy = new Enemy((float)Math.random()*(m_WorldSize.x - 100) + 50, (float)Math.random()*(m_WorldSize.y - 100) + 50, m_EnemyTextureRegion, MainActivity.this.getVertexBufferObjectManager());
+						Enemy enemy = new Enemy((float)Math.random()*(m_WorldSize.x - 100) + 50, (float)Math.random()*(m_WorldSize.y - 100) + 50, ResourcesManager.m_EnemyTiledTextureRegion, MainActivity.this.getVertexBufferObjectManager());
 						m_GameScene.attachChild(enemy);
 						enemy.fn_initPhysicsBody("Enemy");
 						enemy.fn_getScene(m_GameScene);
@@ -407,11 +340,11 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 	{
 		m_OptionMenuScene = new MenuScene(m_Camera);
 		
-		final IMenuItem resumeMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_RESUME, this.m_Font, "RESUME", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
+		final IMenuItem resumeMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_RESUME, ResourcesManager.m_Font, "RESUME", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
 		resumeMenuItem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		m_OptionMenuScene.addMenuItem(resumeMenuItem);
 
-		final IMenuItem quitMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT, this.m_Font, "QUIT", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
+		final IMenuItem quitMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT, ResourcesManager.m_Font, "QUIT", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
 		quitMenuItem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		m_OptionMenuScene.addMenuItem(quitMenuItem);
 
@@ -421,11 +354,11 @@ public class MainActivity extends BaseGameActivity implements IOnMenuItemClickLi
 		
 		m_SubMenuScene = new MenuScene(m_Camera);
 		
-		final IMenuItem okSubMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT_OK, this.m_Font, "Quit", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
+		final IMenuItem okSubMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT_OK, ResourcesManager.m_Font, "Quit", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
 		resumeMenuItem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		m_SubMenuScene.addMenuItem(okSubMenuItem);
 
-		final IMenuItem cancleSubMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT_CANCLE, this.m_Font, "Cancle", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
+		final IMenuItem cancleSubMenuItem = new ColorMenuItemDecorator(new TextMenuItem(OPTION_QUIT_CANCLE, ResourcesManager.m_Font, "Cancle", this.getVertexBufferObjectManager()), new Color(1,0,0), new Color(0,0,0));
 		quitMenuItem.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		m_SubMenuScene.addMenuItem(cancleSubMenuItem);
 		

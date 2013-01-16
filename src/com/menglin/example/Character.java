@@ -1,9 +1,9 @@
 package com.menglin.example;
 
-import org.andengine.entity.sprite.Sprite;
+import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
-import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import com.badlogic.gdx.math.Vector2;
@@ -11,16 +11,17 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
-public class Character extends Sprite implements Runnable{
+public class Character extends AnimatedSprite implements Runnable{
 
-	public Character(float pX, float pY, ITextureRegion pTextureRegion,
+	public Character(float pX, float pY,
+			ITiledTextureRegion pTiledTextureRegion,
 			VertexBufferObjectManager pVertexBufferObjectManager) {
-		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
+		super(pX, pY, pTiledTextureRegion, pVertexBufferObjectManager);
 		// TODO Auto-generated constructor stub
 		m_health = 100;
 		m_speed = 2;
 		
-		m_sprite = this;
+		m_AnimatedSprite = this;
 	}
 	
 	public void fn_initPhysicsBody(String userdata)
@@ -50,6 +51,6 @@ public class Character extends Sprite implements Runnable{
 	protected int m_health;
 	protected int m_speed;
 	
-	protected Sprite m_sprite;
+	protected AnimatedSprite m_AnimatedSprite;
 	protected Body m_body;
 }

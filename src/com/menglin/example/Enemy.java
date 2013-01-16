@@ -6,24 +6,27 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
-import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
 
 
 public class Enemy extends Character{
 	
-	public Enemy(float pX, float pY, ITextureRegion pTextureRegion,
+	public Enemy(float pX, float pY, ITiledTextureRegion pTiledTextureRegion,
 			VertexBufferObjectManager pVertexBufferObjectManager) {
-		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
+		super(pX, pY, pTiledTextureRegion, pVertexBufferObjectManager);
 		// TODO Auto-generated constructor stub
+		this.setCurrentTileIndex(1);
+		this.animate(200);
+		
 		m_speed = 4;
 		m_state = "Chasing";
 		
 		m_blood = new Rectangle(this.getX(), this.getY(), m_health / 2.5f, 3, pVertexBufferObjectManager);
 		m_blood.setColor(new Color(0, 1, 0));
 	}
-	
+
 	public void fn_getScene(Scene sc)
 	{
 		MainActivity.m_GameScene = sc;
@@ -56,7 +59,7 @@ public class Enemy extends Character{
 		if (this != null && m_body != null)
 		{
 			final PhysicsConnector physicsConnector = 
-					MainActivity.m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(m_sprite);
+					MainActivity.m_physicsWorld.getPhysicsConnectorManager().findPhysicsConnectorByShape(m_AnimatedSprite);
 			if (physicsConnector != null)
 			{
 				MainActivity.m_physicsWorld.unregisterPhysicsConnector(physicsConnector);
@@ -67,6 +70,7 @@ public class Enemy extends Character{
 				this.detachSelf();
 				this.dispose();
 				m_Enemies.remove(this);
+				MainActivity.m_GameScene.unregisterUpdateHandler(m_updateHandler);
 			}
 		}
 	}
@@ -77,33 +81,7 @@ public class Enemy extends Character{
 		
 		m_lastUpdateTime = System.currentTimeMillis();
 		
-		MainActivity.m_GameScene.registerUpdateHandler(new IUpdateHandler() {
-			// TODO Game main Loop
-			@Override
-			public void reset() { }
-
-			@Override
-			public void onUpdate(final float pSecondsElapsed) {
-				
-				m_blood.setPosition(m_sprite.getX(), m_sprite.getY());
-				m_blood.setWidth(m_health / 2.5f);
-
-				if (m_health <= 0)
-					fn_destroy();
-				else if (m_state.equals("Chasing"))
-				{
-					long currentTime = System.currentTimeMillis();
-					if (currentTime - m_lastUpdateTime >= 100)
-					{
-						fn_setDirection();
-						m_lastUpdateTime = currentTime;
-					}
-					// end if
-				}
-				// end if-else
-			}
-			// end onupdate
-		});
+		MainActivity.m_GameScene.registerUpdateHandler(m_updateHandler);
 		// end registerUpdateHandler
 	}
 	
@@ -117,4 +95,32 @@ public class Enemy extends Character{
 	public Rectangle m_blood;
 	
 	public static Vector<Enemy> m_Enemies = new Vector<Enemy>(); // use iterator to traverse
+	
+	private IUpdateHandler m_updateHandler = new IUpdateHandler() {
+		// TODO Game main Loop
+		@Override
+		public void reset() { }
+
+		@Override
+		public void onUpdate(final float pSecondsElapsed) {
+			
+			m_blood.setPosition(m_AnimatedSprite.getX(), m_AnimatedSprite.getY());
+			m_blood.setWidth(m_health / 2.5f);
+
+			if (m_health <= 0)
+				fn_destroy();
+			else if (m_state.equals("Chasing"))
+			{
+				long currentTime = System.currentTimeMillis();
+				if (currentTime - m_lastUpdateTime >= 100)
+				{
+					fn_setDirection();
+					m_lastUpdateTime = currentTime;
+				}
+				// end if
+			}
+			// end if-else
+		}
+		// end onupdate
+	};
 }

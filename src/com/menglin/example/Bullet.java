@@ -63,6 +63,7 @@ public class Bullet extends Sprite implements Runnable{
 				MainActivity.m_physicsWorld.destroyBody(m_body);
 				MainActivity.m_GameScene.detachChild(m_sprite);
 				m_sprite.dispose();
+				MainActivity.m_GameScene.unregisterUpdateHandler(m_updateHandler);
 			}
 		}
 	}
@@ -70,29 +71,7 @@ public class Bullet extends Sprite implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		MainActivity.m_GameScene.registerUpdateHandler(new IUpdateHandler() {
-			// TODO Game main Loop
-			@Override
-			public void reset() { }
-
-			@Override
-			public void onUpdate(final float pSecondsElapsed) {
-				m_currentTime = System.currentTimeMillis();
-				if (m_currentTime - m_bornTime > m_lifeSpan)
-				{
-					if (this != null && m_body != null)
-					{
-						fn_destroy();
-					}
-				}
-				
-				if (!m_isActived)
-				{
-					fn_destroy();
-				}
-			}
-			// end onupdate
-		});
+		MainActivity.m_GameScene.registerUpdateHandler(m_updateHandler);
 		// end registerUpdateHandler
 	}
 	
@@ -106,4 +85,28 @@ public class Bullet extends Sprite implements Runnable{
 	public long m_lifeSpan;
 	public long m_bornTime;
 	public long m_currentTime;
+	
+	private IUpdateHandler m_updateHandler = new IUpdateHandler() {
+		// TODO Game main Loop
+		@Override
+		public void reset() { }
+
+		@Override
+		public void onUpdate(final float pSecondsElapsed) {
+			m_currentTime = System.currentTimeMillis();
+			if (m_currentTime - m_bornTime > m_lifeSpan)
+			{
+				if (this != null && m_body != null)
+				{
+					fn_destroy();
+				}
+			}
+			
+			if (!m_isActived)
+			{
+				fn_destroy();
+			}
+		}
+		// end onupdate
+	};
 }

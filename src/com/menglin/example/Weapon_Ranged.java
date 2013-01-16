@@ -1,14 +1,7 @@
 package com.menglin.example;
 
-import org.andengine.opengl.texture.TextureManager;
-import org.andengine.opengl.texture.TextureOptions;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
-import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.math.MathUtils;
-
-import android.content.Context;
 
 public class Weapon_Ranged {
 	public Weapon_Ranged()
@@ -18,16 +11,9 @@ public class Weapon_Ranged {
 		m_spread = 0.3f;
 	}
 	
-	public void fn_loadRes(TextureManager tm, Context c, String res)
-	{
-		Weapon_Ranged.m_BulletTextureAtlas = new BitmapTextureAtlas(tm, 8, 16, TextureOptions.BILINEAR);
-		Weapon_Ranged.m_BulletTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(Weapon_Ranged.m_BulletTextureAtlas, c, res, 0, 0);
-		Weapon_Ranged.m_BulletTextureAtlas.load();
-	}
-	
 	public void fn_fire(float x, float y, float dx, float dy, VertexBufferObjectManager vbom)
 	{
-		Bullet bullet = new Bullet(x, y, Weapon_Ranged.m_BulletTextureRegion, vbom);
+		Bullet bullet = new Bullet(x, y, ResourcesManager.m_BulletTextureRegion, vbom);
 		bullet.setRotation(MathUtils.radToDeg((float)Math.atan2(dx, -dy)));
 		bullet.fn_initPhysicsBody("Bullet");
 		
@@ -40,7 +26,4 @@ public class Weapon_Ranged {
 	protected long m_speed;
 	protected long m_fireRate;
 	protected float m_spread;
-	
-	protected static BitmapTextureAtlas m_BulletTextureAtlas;
-	protected static ITextureRegion m_BulletTextureRegion;
 }

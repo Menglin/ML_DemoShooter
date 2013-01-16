@@ -1,5 +1,6 @@
 package com.menglin.example;
 
+import org.andengine.engine.camera.hud.HUD;
 import org.andengine.engine.camera.hud.controls.AnalogOnScreenControl;
 import org.andengine.engine.camera.hud.controls.BaseOnScreenControl;
 import org.andengine.engine.camera.hud.controls.AnalogOnScreenControl.IAnalogOnScreenControlListener;
@@ -7,40 +8,27 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
 //import org.andengine.engine.handler.physics.PhysicsHandler;
-import org.andengine.entity.sprite.Sprite;
-import org.andengine.opengl.texture.TextureManager;
-import org.andengine.opengl.texture.TextureOptions;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
-import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
-import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
-import android.content.Context;
 import android.opengl.GLES20;
 
 public class Hero extends Character{
-	public Hero(float pX, float pY, ITextureRegion pTextureRegion,
+	
+	public Hero(float pX, float pY, ITiledTextureRegion pTiledTextureRegion,
 			VertexBufferObjectManager pVertexBufferObjectManager) {
-		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
+		super(pX, pY, pTiledTextureRegion, pVertexBufferObjectManager);
 		// TODO Auto-generated constructor stub
-		m_Sprite = this;
+		m_AnimatedSprite = this;
 		
 		m_lastFireTime = System.currentTimeMillis();
 		m_curFireTime = 0;
 
 		m_wpR = new Weapon_Ranged();
-	}
-	
-	public void fn_loadRes(TextureManager tm, Context c)
-	{
-		m_wpR.fn_loadRes(tm, c, "bullet.png");
 		
-		this.m_OnScreenControlTexture = new BitmapTextureAtlas(tm, 256, 128, TextureOptions.BILINEAR);
-		this.m_OnScreenControlBaseTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_OnScreenControlTexture, c, "onscreen_control_base.png", 0, 0);
-		this.m_OnScreenControlKnobTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(m_OnScreenControlTexture, c, "onscreen_control_knob.png", 128, 0);
-		this.m_OnScreenControlTexture.load();
+		MainActivity.m_Camera.setHUD(m_hud);
 	}
-	
+
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
@@ -54,22 +42,22 @@ public class Hero extends Character{
 			public void onUpdate(final float pSecondsElapsed) {
 				
 				IEntity tmpEntity = new Entity();
-				tmpEntity.setPosition(m_sprite.getX(), m_sprite.getY());
+				tmpEntity.setPosition(m_AnimatedSprite.getX(), m_AnimatedSprite.getY());
 				
-				if (m_sprite.getX() <= MainActivity.CAMERA_WIDTH/2)
+				if (m_AnimatedSprite.getX() <= MainActivity.CAMERA_WIDTH/2)
 				{
 					tmpEntity.setPosition(MainActivity.CAMERA_WIDTH/2, tmpEntity.getY());
 				}
-				else if (m_sprite.getX() + MainActivity.CAMERA_WIDTH/2 >= MainActivity.m_WorldSize.x)
+				else if (m_AnimatedSprite.getX() + MainActivity.CAMERA_WIDTH/2 >= MainActivity.m_WorldSize.x)
 				{
 					tmpEntity.setPosition(MainActivity.m_WorldSize.x - MainActivity.CAMERA_WIDTH/2, tmpEntity.getY());
 				}
 				
-				if (m_sprite.getY() <= MainActivity.CAMERA_HEIGHT/2)
+				if (m_AnimatedSprite.getY() <= MainActivity.CAMERA_HEIGHT/2)
 				{
 					tmpEntity.setPosition(tmpEntity.getX(), MainActivity.CAMERA_HEIGHT/2);
 				}
-				else if (m_sprite.getY() + MainActivity.CAMERA_HEIGHT/2 >= MainActivity.m_WorldSize.y)
+				else if (m_AnimatedSprite.getY() + MainActivity.CAMERA_HEIGHT/2 >= MainActivity.m_WorldSize.y)
 				{
 					tmpEntity.setPosition(tmpEntity.getX(), MainActivity.m_WorldSize.y - MainActivity.CAMERA_HEIGHT/2);
 				}
@@ -94,8 +82,8 @@ public class Hero extends Character{
 		
 		// Velocity control (left). //
 		final float x1 = 0;
-		final float y1 = MainActivity.CAMERA_HEIGHT - m_OnScreenControlBaseTextureRegion.getHeight();
-		m_velocityOnScreenControl = new AnalogOnScreenControl(x1, y1, MainActivity.m_Camera, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
+		final float y1 = MainActivity.CAMERA_HEIGHT - ResourcesManager.m_OnScreenControlBaseTextureRegion.getHeight();
+		m_velocityOnScreenControl = new AnalogOnScreenControl(x1, y1, MainActivity.m_Camera, ResourcesManager.m_OnScreenControlBaseTextureRegion, ResourcesManager.m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
 			@Override
 			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
 				//m_physicsHandler.setVelocity(pValueX * 100, pValueY * 100);
@@ -115,8 +103,8 @@ public class Hero extends Character{
 
 		// Rotation control (right). //
 		final float y2 = (this.mPlaceOnScreenControlsAtDifferentVerticalLocations) ? 0 : y1;
-		final float x2 = MainActivity.CAMERA_WIDTH - m_OnScreenControlBaseTextureRegion.getWidth();
-		m_rotationOnScreenControl = new AnalogOnScreenControl(x2, y2, MainActivity.m_Camera, m_OnScreenControlBaseTextureRegion, m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
+		final float x2 = MainActivity.CAMERA_WIDTH - ResourcesManager.m_OnScreenControlBaseTextureRegion.getWidth();
+		m_rotationOnScreenControl = new AnalogOnScreenControl(x2, y2, MainActivity.m_Camera, ResourcesManager.m_OnScreenControlBaseTextureRegion, ResourcesManager.m_OnScreenControlKnobTextureRegion, 0.1f, vbom, new IAnalogOnScreenControlListener() {
 			@Override
 			public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
 				if(pValueX == 0 && pValueY == 0) {
@@ -126,8 +114,8 @@ public class Hero extends Character{
 					m_curFireTime = System.currentTimeMillis();
 					if (m_curFireTime-m_lastFireTime >= m_wpR.m_fireRate)
 					{
-						m_wpR.fn_fire(m_Sprite.getX()+m_Sprite.getWidth()/4+m_Sprite.getWidth()*(float)Math.cos((float)Math.atan2(pValueY, pValueX)), 
-							m_Sprite.getY()+m_Sprite.getHeight()/4+m_Sprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_vbom);
+						m_wpR.fn_fire(m_AnimatedSprite.getX()+m_AnimatedSprite.getWidth()/4+m_AnimatedSprite.getWidth()*(float)Math.cos((float)Math.atan2(pValueY, pValueX)), 
+								m_AnimatedSprite.getY()+m_AnimatedSprite.getHeight()/4+m_AnimatedSprite.getHeight()*(float)Math.sin((float)Math.atan2(pValueY, pValueX)), pValueX, pValueY, m_vbom);
 						m_lastFireTime = m_curFireTime;
 					}
 				}
@@ -144,7 +132,6 @@ public class Hero extends Character{
 		m_velocityOnScreenControl.setChildScene(m_rotationOnScreenControl);
 	}
 
-	private Sprite m_Sprite;
 	private VertexBufferObjectManager m_vbom;
 	
 	private Weapon_Ranged m_wpR;
@@ -155,12 +142,13 @@ public class Hero extends Character{
 	
 	//private PhysicsHandler m_physicsHandler;
 	
-	private BitmapTextureAtlas m_OnScreenControlTexture;
-	private ITextureRegion m_OnScreenControlBaseTextureRegion;
-	private ITextureRegion m_OnScreenControlKnobTextureRegion;
+	
 	
 	public AnalogOnScreenControl m_velocityOnScreenControl;
 	private AnalogOnScreenControl m_rotationOnScreenControl;
 	
 	public boolean mPlaceOnScreenControlsAtDifferentVerticalLocations = false;
+	
+	// HUD
+	private HUD m_hud = new HUD();
 }
